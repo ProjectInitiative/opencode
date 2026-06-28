@@ -181,11 +181,16 @@ export const layer = Layer.effect(
           const maybeMod = yield* Effect.promise(async () => {
             try {
               return await import(pathToFileURL(match).href)
-            } catch (error) {
-              console.warn("failed to load tool", match, error)
+            } catch {
               return undefined
             }
-          })
+          }).pipe(
+            Effect.tap((mod) =>
+              mod === undefined
+                ? Effect.logWarning("failed to load tool", { path: match })
+                : Effect.void,
+            ),
+          )
           if (!maybeMod) continue
           for (const [id, def] of Object.entries(maybeMod)) {
             if (!isPluginTool(def)) continue
