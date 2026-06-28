@@ -179,7 +179,7 @@ export const layer = Layer.effect(
           // `match` is an absolute filesystem path from `Glob.scanSync(..., { absolute: true })`.
           // Import it as `file://` so Node on Windows accepts the dynamic import.
           const maybeMod = yield* Effect.promise(() => import(pathToFileURL(match).href)).pipe(
-            Effect.catchAll((error) =>
+            Effect.catch((error) =>
               Effect.logWarning("failed to load tool", { path: match, error }).pipe(Effect.as(undefined)),
             ),
           )
