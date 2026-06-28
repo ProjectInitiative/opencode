@@ -2,7 +2,6 @@ import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { Plugin } from "../plugin"
 import { Format } from "../format"
 import { LSP } from "@/lsp/lsp"
-import { Provider } from "@/provider/provider"
 import { Snapshot } from "../snapshot"
 import * as Project from "./project"
 import * as Vcs from "./vcs"
@@ -25,7 +24,6 @@ export const layer = Layer.effect(
     const format = yield* Format.Service
     const lsp = yield* LSP.Service
     const plugin = yield* Plugin.Service
-    const provider = yield* Provider.Service
     const project = yield* Project.Service
     const shareNext = yield* ShareNext.Service
     const snapshot = yield* Snapshot.Service
@@ -41,7 +39,7 @@ export const layer = Layer.effect(
       // Each service self-manages its own slow work via Effect.forkScoped against
       // its per-instance state scope. We just await materialization here.
       yield* Effect.forEach(
-        [lsp, shareNext, format, vcs, snapshot, project, provider],
+        [lsp, shareNext, format, vcs, snapshot, project],
         (s) => s.init().pipe(Effect.catchCause((cause) => Effect.logWarning("init failed", { cause }))),
         { concurrency: "unbounded", discard: true },
       ).pipe(Effect.withSpan("InstanceBootstrap.init"))
@@ -57,7 +55,6 @@ export const defaultLayer: Layer.Layer<Service> = layer.pipe(
     Format.defaultLayer,
     LSP.defaultLayer,
     Plugin.defaultLayer,
-    Provider.defaultLayer,
     Project.defaultLayer,
     ShareNext.defaultLayer,
     Snapshot.defaultLayer,
@@ -68,7 +65,7 @@ export const defaultLayer: Layer.Layer<Service> = layer.pipe(
 export const node = LayerNode.make({
   service: Service,
   layer: layer,
-  deps: [Config.node, Format.node, LSP.node, Plugin.node, Provider.node, Project.node, ShareNext.node, Snapshot.node, Vcs.node],
+  deps: [Config.node, Format.node, LSP.node, Plugin.node, Project.node, ShareNext.node, Snapshot.node, Vcs.node],
 })
 
 export * as InstanceBootstrap from "./bootstrap"
